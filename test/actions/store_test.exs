@@ -60,5 +60,12 @@ defmodule ArcTest.Actions.Store do
     end
 
     Application.put_env :arc, :version_timeout, 15_000
+
+  test "accepts remote files" do
+    with_mock Arc.Storage.S3, [put: fn(DummyDefinition, _, {%{file_name: "image.png", path: _}, nil}) -> :ok end] do
+      with_mock :httpc, [request: fn(:get, {'http://example.com/image.png', []}, [], []) -> {:ok, {{'HTTP/1.1', nil, nil}, nil, File.read!(@img)}} end] do
+        assert DummyDefinition.store("http://example.com/image.png") == {:ok, "image.png"}
+      end
+    end
   end
 end

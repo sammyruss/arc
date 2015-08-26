@@ -28,7 +28,7 @@ defmodule Arc.Mixfile do
   end
 
   def application do
-    [applications: [:logger]]
+    [applications: [:logger, :inets, :ssl]]
   end
 
   defp deps do
