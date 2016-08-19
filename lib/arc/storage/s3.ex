@@ -10,7 +10,10 @@ defmodule Arc.Storage.S3 do
       definition.s3_object_headers(version, {file, scope})
       |> Dict.put(:acl, acl)
 
-    case ExAws.S3.put_object(bucket, s3_key, extract_binary(file), s3_options) do
+    bucket
+    |> ExAws.S3.put_object(s3_key, extract_binary(file), s3_options)
+    |> ExAws.request()
+    |> case do
       {:ok, _res}     -> {:ok, file.file_name}
       {:error, error} -> {:error, error}
     end
@@ -24,7 +27,9 @@ defmodule Arc.Storage.S3 do
   end
 
   def delete(definition, version, {file, scope}) do
-    ExAws.S3.delete_object bucket, s3_key(definition, version, {file, scope})
+    bucket
+    |> ExAws.S3.delete_object(s3_key(definition, version, {file, scope}))
+    |> ExAws.request()
 
     :ok
   end
@@ -39,7 +44,8 @@ defmodule Arc.Storage.S3 do
 
   defp build_signed_url(definition, version, file_and_scope, options) do
     expires_in = Keyword.get(options, :expire_in, @default_expiry_time)
-    {:ok, url} = ExAws.S3.presigned_url(:get, bucket, s3_key(definition, version, file_and_scope), [expires_in: expires_in, virtual_host: virtual_host])
+    config = ExAws.Config.new(:s3, Application.get_all_env(:ex_aws))
+    {:ok, url} = ExAws.S3.presigned_url(config, :get, bucket, s3_key(definition, version, file_and_scope), [expires_in: expires_in, virtual_host: virtual_host])
     url
   end
 

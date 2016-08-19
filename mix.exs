@@ -33,7 +33,7 @@ defmodule Arc.Mixfile do
 
   defp deps do
     [
-      {:ex_aws,    "~> 0.4.10 or ~> 0.5.0", optional: true},
+      {:ex_aws,    "~> 1.0.0-beta1", optional: true},
       {:poison,    "~> 1.2 or ~> 2.0",    optional: true},
       {:httpoison, "~> 0.7",    optional: true},
       {:mock,      "~> 0.1.1",  only: :test}
