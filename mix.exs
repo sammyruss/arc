@@ -28,15 +28,17 @@ defmodule Arc.Mixfile do
   end
 
   def application do
-    [applications: [:logger]]
+    [applications: [:hackney, :logger]]
   end
 
   defp deps do
     [
-      {:ex_aws,    "~> 1.0.0-beta1", optional: true},
+      {:ex_aws, github: "CargoSense/ex_aws", ref: "b20b337fe8fb4a58762143343a88ff5f52b7e8aa", override: true},
       {:poison,    "~> 1.2 or ~> 2.0",    optional: true},
       {:httpoison, "~> 0.7",    optional: true},
-      {:mock,      "~> 0.1.1",  only: :test}
+      {:sweet_xml, "~> 0.5", optional: true},
+      {:mock,      "~> 0.1.1",  only: :test},
+      {:hackney, "~> 1.6"}
     ]
   end
 end

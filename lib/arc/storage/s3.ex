@@ -10,13 +10,7 @@ defmodule Arc.Storage.S3 do
       definition.s3_object_headers(version, {file, scope})
       |> Dict.put(:acl, acl)
 
-    bucket
-    |> ExAws.S3.put_object(s3_key, extract_binary(file), s3_options)
-    |> ExAws.request()
-    |> case do
-      {:ok, _res}     -> {:ok, file.file_name}
-      {:error, error} -> {:error, error}
-    end
+    do_put(file, s3_key, s3_options)
   end
 
   def url(definition, version, file_and_scope, options \\ []) do
@@ -37,6 +31,28 @@ defmodule Arc.Storage.S3 do
   #
   # Private
   #
+
+  # If the file is stored as a binary in-memory, send to AWS in a single request
+  defp do_put(file=%Arc.File{binary: file_binary}, s3_key, s3_options) when is_binary(file_binary) do
+    ExAws.S3.put_object(bucket(), s3_key, file_binary, s3_options)
+    |> ExAws.request()
+    |> case do
+      {:ok, _res}     -> {:ok, file.file_name}
+      {:error, error} -> {:error, error}
+    end
+  end
+
+  # Stream the file and upload to AWS as a multi-part upload
+  defp do_put(file, s3_key, s3_options) do
+    file.path
+    |> ExAws.S3.Upload.stream_file()
+    |> ExAws.S3.upload(bucket(), s3_key, s3_options)
+    |> ExAws.request!()
+    |> case do
+      {:ok, :done} -> {:ok, file.file_name}
+      {:error, error} -> {:error, error}
+    end
+  end
 
   defp build_url(definition, version, file_and_scope, _options) do
     Path.join host, s3_key(definition, version, file_and_scope)
@@ -78,9 +94,5 @@ defmodule Arc.Storage.S3 do
       {:system, env_var} when is_binary(env_var) -> System.get_env(env_var)
       name -> name
     end
-  end
-
-  defp extract_binary(file) do
-    file.binary || File.read!(file.path)
   end
 end
