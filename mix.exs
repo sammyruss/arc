@@ -33,7 +33,7 @@ defmodule Arc.Mixfile do
 
   defp deps do
     [
-      {:ex_aws, github: "CargoSense/ex_aws", ref: "b20b337fe8fb4a58762143343a88ff5f52b7e8aa", override: true},
+      {:ex_aws, github: "CargoSense/ex_aws", ref: "dbe871a8b6f9223f2d43cdea27028460764f1db9", override: true},
       {:poison,    "~> 1.2 or ~> 2.0",    optional: true},
       {:httpoison, "~> 0.7",    optional: true},
       {:sweet_xml, "~> 0.5", optional: true},

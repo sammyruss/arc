@@ -1,4 +1,5 @@
 defmodule Arc.Storage.S3 do
+  require Logger
   @default_expiry_time 60*5
 
   def put(definition, version, {file, scope}) do
@@ -44,13 +45,22 @@ defmodule Arc.Storage.S3 do
 
   # Stream the file and upload to AWS as a multi-part upload
   defp do_put(file, s3_key, s3_options) do
-    file.path
-    |> ExAws.S3.Upload.stream_file()
-    |> ExAws.S3.upload(bucket(), s3_key, s3_options)
-    |> ExAws.request!()
-    |> case do
-      {:ok, :done} -> {:ok, file.file_name}
-      {:error, error} -> {:error, error}
+
+    try do
+      file.path
+      |> ExAws.S3.Upload.stream_file()
+      |> ExAws.S3.upload(bucket(), s3_key, s3_options)
+      |> ExAws.request()
+      |> case do
+        # :done -> {:ok, file.file_name}
+        {:ok, :done} -> {:ok, file.file_name}
+        {:error, error} -> {:error, error}
+      end
+    rescue
+      e in ExAws.Error ->
+        Logger.error(inspect e)
+        Logger.error(e.message)
+        {:error, :invalid_bucket} #{:error, {:http_error, 404, raw}}
     end
   end
 
