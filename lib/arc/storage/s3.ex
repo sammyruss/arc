@@ -10,7 +10,7 @@ defmodule Arc.Storage.S3 do
       definition.s3_object_headers(version, {file, scope})
       |> Dict.put(:acl, acl)
 
-    case ExAws.S3.put_object(bucket, s3_key, extract_binary(file), s3_options) do
+    case ExAws.S3.put_object(bucket, s3_key, extract_binary(file), s3_options) |> ExAws.request do
       {:ok, _res}     -> {:ok, file.file_name}
       {:error, error} -> {:error, error}
     end
